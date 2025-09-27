@@ -3,82 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classificador de Emails</title>
+  <title>AutoU - Classificador de Emails</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="16x16">
   <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #003366, #5a2dd8);
+      --primary-color: #003366;
+      --secondary-color: #5a2dd8;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --bg-light: #f5f7fb;
+      --text-color: #333;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f7f9fb;
       margin: 0;
-      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-light);
+      color: var(--text-color);
+      line-height: 1.6;
     }
+
     header {
-      background: #003366;
+      background: var(--primary-gradient);
       color: white;
-      padding: 1rem;
       text-align: center;
+      padding: 2rem 1rem;
     }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
     main {
-      max-width: 800px;
-      margin: 2rem auto;
+      max-width: 850px;
+      margin: -2rem auto 3rem;
       background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
-    h1 {
+
+    h3 {
       margin-top: 0;
+      font-weight: 600;
+      color: var(--primary-color);
     }
+
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
+
     label {
       display: block;
       margin-bottom: 0.5rem;
-      font-weight: bold;
+      font-weight: 600;
+      color: var(--primary-color);
     }
+
     input[type="file"], textarea {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 0.9rem 1rem;
+      border: 1px solid #d0d7e2;
+      border-radius: 8px;
       font-size: 1rem;
+      transition: border-color 0.2s ease-in-out;
     }
+
+    input[type="file"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 2px rgba(90, 45, 216, 0.2);
+    }
+
     textarea {
-      height: 120px;
+      height: 140px;
       resize: vertical;
     }
+
     button {
-      background: #003366;
+      display: inline-block;
+      background: var(--primary-gradient);
       color: white;
       border: none;
-      padding: 0.75rem 1.5rem;
+      padding: 0.9rem 1.8rem;
       font-size: 1rem;
-      border-radius: 4px;
+      font-weight: 600;
+      border-radius: 50px;
       cursor: pointer;
-      transition: background 0.2s ease-in-out;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 12px rgba(90, 45, 216, 0.3);
     }
+
     button:hover {
-      background: #0055aa;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(90, 45, 216, 0.4);
     }
+
     .result {
       margin-top: 2rem;
-      padding: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #fafafa;
+      padding: 1.5rem;
+      border-radius: 12px;
+      background: #fafbff;
+      border: 1px solid #e0e4f0;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
     }
-    .result h3 {
-      margin-top: 0;
-    }
+
     .category {
-      font-weight: bold;
+      font-weight: 700;
       font-size: 1.2rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      color: white;
     }
-    .produtivo { color: green; }
-    .improdutivo { color: darkred; }
+
+    .produtivo {
+      background: var(--success-color);
+    }
+
+    .improdutivo {
+      background: var(--danger-color);
+    }
+
     .loading {
-      color: #555;
+      margin-top: 1.5rem;
+      color: var(--secondary-color);
       font-style: italic;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .loading::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border: 3px solid #ccc;
+      border-top: 3px solid var(--secondary-color);
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -86,17 +162,18 @@
   <header>
     <h1>Classificação Automática de Emails</h1>
   </header>
+
   <main>
     <form id="emailForm">
       <div class="form-group">
-        <label for="file">Upload de Arquivo (.txt ou .pdf):</label>
+        <label for="file">Upload de arquivo (.txt ou .pdf):</label>
         <input type="file" id="file" name="file" accept=".txt,.pdf">
       </div>
       <div class="form-group">
         <label for="text">Ou insira o texto do email:</label>
         <textarea id="text" name="text" placeholder="Cole o conteúdo do email aqui..."></textarea>
       </div>
-      <button type="submit">Processar</button>
+      <button type="submit">🚀 Processar</button>
     </form>
 
     <div id="result" class="result" style="display: none;">
@@ -121,7 +198,7 @@
       e.preventDefault();
 
       resultDiv.style.display = 'none';
-      loadingDiv.style.display = 'block';
+      loadingDiv.style.display = 'flex';
 
       const formData = new FormData();
       const fileInput = document.getElementById('file');
@@ -138,7 +215,7 @@
       }
 
       try {
-        const response = await fetch('http://localhost:5000/process', {
+        const response = await fetch('http://ec2-54-90-194-45.compute-1.amazonaws.com:5000/process', {
           method: 'POST',
           body: formData
         });
