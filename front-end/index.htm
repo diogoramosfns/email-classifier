@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classificador de Emails</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f9fb;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #003366;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    input[type="file"], textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+    button {
+      background: #003366;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+    button:hover {
+      background: #0055aa;
+    }
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+    }
+    .result h3 {
+      margin-top: 0;
+    }
+    .category {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .produtivo { color: green; }
+    .improdutivo { color: darkred; }
+    .loading {
+      color: #555;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Classificação Automática de Emails</h1>
+  </header>
+  <main>
+    <form id="emailForm">
+      <div class="form-group">
+        <label for="file">Upload de Arquivo (.txt ou .pdf):</label>
+        <input type="file" id="file" name="file" accept=".txt,.pdf">
+      </div>
+      <div class="form-group">
+        <label for="text">Ou insira o texto do email:</label>
+        <textarea id="text" name="text" placeholder="Cole o conteúdo do email aqui..."></textarea>
+      </div>
+      <button type="submit">Processar</button>
+    </form>
+
+    <div id="result" class="result" style="display: none;">
+      <h3>Resultado</h3>
+      <p>Categoria: <span id="category" class="category"></span></p>
+      <p>Confiança: <span id="confidence"></span></p>
+      <p><strong>Resposta sugerida:</strong></p>
+      <p id="suggested_response"></p>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+      Processando email, aguarde...
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('emailForm');
+    const resultDiv = document.getElementById('result');
+    const loadingDiv = document.getElementById('loading');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      resultDiv.style.display = 'none';
+      loadingDiv.style.display = 'block';
+
+      const formData = new FormData();
+      const fileInput = document.getElementById('file');
+      const textInput = document.getElementById('text').value.trim();
+
+      if (fileInput.files.length > 0) {
+        formData.append('file', fileInput.files[0]);
+      } else if (textInput.length > 0) {
+        formData.append('text', textInput);
+      } else {
+        alert('Por favor, selecione um arquivo ou insira o texto do email.');
+        loadingDiv.style.display = 'none';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/process', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao processar o email.');
+        }
+
+        const data = await response.json();
+        document.getElementById('category').textContent = data.category;
+        document.getElementById('category').className = 'category ' + data.category.toLowerCase();
+        document.getElementById('confidence').textContent = (data.confidence * 100).toFixed(2) + '%';
+        document.getElementById('suggested_response').textContent = data.suggested_response;
+
+        resultDiv.style.display = 'block';
+      } catch (error) {
+        alert('Erro: ' + error.message);
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
